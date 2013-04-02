@@ -84,6 +84,10 @@
 
 		this.viewMode = this.startViewMode = 0;
 		switch(options.startView || this.element.data('date-start-view')){
+			case 3:
+			case 'decades':
+				this.viewMode = this.startViewMode = 3;
+				break;
 			case 2:
 			case 'decade':
 				this.viewMode = this.startViewMode = 2;
@@ -102,6 +106,9 @@
 					break;
 				case 'years':
 					this.minViewMode = 2;
+					break;
+				case 'decades':
+					this.minViewMode = 3;
 					break;
 				default:
 					this.minViewMode = 0;
@@ -518,6 +525,16 @@
 				year += 1;
 			}
 			yearCont.html(html);
+			
+			var decade=(Math.round(year/10)*10)-90;
+			var htmlDecade = '<tr><td colspan="7">';
+			for (var i = -1; i < 11; i++) {//(i === -1 || i === 100 ? ' old' : '')
+				htmlDecade += '<span class="decades'+(decade < startYear || decade > endYear ? ' disabled' : '')+(currentYear >= decade && currentYear <= (decade+9) ? ' active' : '')+'">'+decade+'</span>';//<br/>-<br/>'+(decade+9)+'
+				decade += 10;
+			}
+			htmlDecade += '</tr></td>';
+			this.picker.find('.datepicker-decades tbody').empty().append(htmlDecade);
+			this.picker.find('.datepicker-decades thead .switch').empty().append((decade-120)+'-'+(decade-1));	
 		},
 
 		updateNavArrows: function() {
@@ -552,6 +569,18 @@
 						this.picker.find('.next').css({visibility: 'visible'});
 					}
 					break;
+				case 3:
+					if (this.startDate !== -Infinity && year <= (this.startDate.getUTCFullYear()+100)) {
+						this.picker.find('.prev').css({visibility: 'hidden'});
+					} else {
+						this.picker.find('.prev').css({visibility: 'visible'});
+					}
+					if (this.endDate !== Infinity && year >= this.endDate.getUTCFullYear()-30) {
+						this.picker.find('.next').css({visibility: 'hidden'});
+					} else {
+						this.picker.find('.next').css({visibility: 'visible'});
+					}
+					break;
 			}
 		},
 
@@ -574,6 +603,7 @@
 										break;
 									case 1:
 									case 2:
+									case 3:
 										this.viewDate = this.moveYear(this.viewDate, dir);
 										break;
 								}
@@ -602,6 +632,18 @@
 									date: this.viewDate
 								});
 								if ( this.minViewMode == 1 ) {
+									this._setDate(UTCDate(year, month, day,0,0,0,0));
+								}
+							} else if (target.is('.decades')) {
+								var year = parseInt(target.text(),10)||0;
+								var day = 1;
+								var month = 0;
+								this.viewDate.setUTCFullYear(year);
+								this.element.trigger({
+									type: 'changeYear',
+									date: this.viewDate
+								});
+								if ( this.minViewMode == 3 ) {
 									this._setDate(UTCDate(year, month, day,0,0,0,0));
 								}
 							} else {
@@ -812,7 +854,7 @@
 
 		showMode: function(dir) {
 			if (dir) {
-				this.viewMode = Math.max(this.minViewMode, Math.min(2, this.viewMode + dir));
+				this.viewMode = Math.max(this.minViewMode, Math.min(3, this.viewMode + dir));
 			}
 			/*
 				vitalets: fixing bug of very special conditions:
@@ -875,7 +917,12 @@
 				clsName: 'years',
 				navFnc: 'FullYear',
 				navStep: 10
-		}],
+			},
+			{
+				clsName: 'decades',
+				navFnc: 'FullYear',
+				navStep: 100
+			}],
 		isLeapYear: function (year) {
 			return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0));
 		},
@@ -1033,6 +1080,13 @@
 								'</table>'+
 							'</div>'+
 							'<div class="datepicker-years">'+
+								'<table class="table-condensed">'+
+									DPGlobal.headTemplate+
+									DPGlobal.contTemplate+
+									DPGlobal.footTemplate+
+								'</table>'+
+							'</div>'+
+							'<div class="datepicker-decades">'+
 								'<table class="table-condensed">'+
 									DPGlobal.headTemplate+
 									DPGlobal.contTemplate+

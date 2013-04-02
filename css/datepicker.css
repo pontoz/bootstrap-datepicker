@@ -271,6 +271,12 @@
 .datepicker table tr td span.old {
   color: #999999;
 }
+.datepicker table tr td span.decades {
+  line-height: 1;
+  padding: 4px 0px;
+  margin: 2px 1px;
+  height:auto;
+}
 .datepicker th.switch {
   width: 145px;
 }
